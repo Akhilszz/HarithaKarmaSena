@@ -28,19 +28,19 @@
           <li><a href="worker_dashboard.php" class="text-green-100 hover:text-white transition-colors flex items-center">
             <i class="fas fa-tachometer-alt mr-2 w-4"></i>Dashboard
           </a></li>
-          <li><a href="collection_requests.php" class="text-green-100 hover:text-white transition-colors flex items-center">
+          <li><a href="collection_pending.php" class="text-green-100 hover:text-white transition-colors flex items-center">
             <i class="fas fa-list mr-2 w-4"></i>All Requests
           </a></li>
-          <li><a href="my_schedule.php" class="text-green-100 hover:text-white transition-colors flex items-center">
+          <!-- <li><a href="my_schedule.php" class="text-green-100 hover:text-white transition-colors flex items-center">
             <i class="fas fa-calendar-alt mr-2 w-4"></i>My Schedule
-          </a></li>
-          <li><a href="task_report.php" class="text-green-100 hover:text-white transition-colors flex items-center">
+          </a></li> -->
+          <!-- <li><a href="task_report.php" class="text-green-100 hover:text-white transition-colors flex items-center">
             <i class="fas fa-clipboard-list mr-2 w-4"></i>Daily Report
-          </a></li>
+          </a></li> -->
         </ul>
       </div>
 
-      <!-- Support -->
+      <!-- Support
       <div class="col-span-1">
         <h4 class="font-semibold mb-4">Support</h4>
         <ul class="space-y-2 text-sm">
@@ -57,7 +57,7 @@
             <i class="fas fa-comment-medical mr-2 w-4"></i>Submit Issue
           </a></li>
         </ul>
-      </div>
+      </div> -->
 
       <!-- Worker Info -->
       <div class="col-span-1">
@@ -86,28 +86,7 @@
       </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="border-t border-green-600 mt-8 pt-6">
-      <h4 class="font-semibold mb-4 text-center">Today's Overview</h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div class="bg-green-600 rounded-lg p-3">
-          <div class="text-2xl font-bold">12</div>
-          <div class="text-xs text-green-100">Assigned</div>
-        </div>
-        <div class="bg-blue-600 rounded-lg p-3">
-          <div class="text-2xl font-bold">8</div>
-          <div class="text-xs text-blue-100">Completed</div>
-        </div>
-        <div class="bg-yellow-600 rounded-lg p-3">
-          <div class="text-2xl font-bold">3</div>
-          <div class="text-xs text-yellow-100">In Progress</div>
-        </div>
-        <div class="bg-purple-600 rounded-lg p-3">
-          <div class="text-2xl font-bold">1</div>
-          <div class="text-xs text-purple-100">Pending</div>
-        </div>
-      </div>
-    </div>
+    
 
     <!-- Bottom Section -->
     <div class="border-t border-green-600 mt-8 pt-6">
@@ -179,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Alt + R for Requests
     if (e.altKey && e.key === 'r') {
       e.preventDefault();
-      window.location.href = 'collection_requests.php';
+      window.location.href = 'collection_pending.php';
     }
     // Alt + S for Schedule
     if (e.altKey && e.key === 's') {

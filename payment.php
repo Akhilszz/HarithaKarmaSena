@@ -9,14 +9,14 @@ $uid = $_SESSION['user']['id'];
 $page_title = "Payments";
 
 // Configure keys here for real integration
-$razorpay_key_id = "rzp_test_RVEferDnVRYHXc"; // Replace with your Razorpay Key ID
+$razorpay_key_id = "rzp_test_RVEferDnVRYHXc";
 $razorpay_key_secret = "3lxVPZxfaMNh0GvsiYJL3433";
 $STRIPE_PK = 'pk_test_XXX';
 
 // Fixed collection fee
 $COLLECTION_FEE = 50.00;
 
-// Get user dues
+// Get user dues (which are collection fees)
 $dues = 0.00; 
 $r = $mysqli->query("SELECT dues FROM users WHERE id={$uid}")->fetch_assoc(); 
 if($r) $dues = $r['dues'];
@@ -44,14 +44,6 @@ $payments->bind_param('i', $uid);
 $payments->execute(); 
 $res_payments = $payments->get_result();
 
-// Handle adding ₹50 to dues
-if(isset($_GET['add_dues']) && $_GET['add_dues'] == 'true') {
-    $mysqli->query("UPDATE users SET dues = dues + $COLLECTION_FEE WHERE id = $uid");
-    $_SESSION['dues_added'] = true;
-    header('Location: payment.php');
-    exit;
-}
-
 require 'header.php';
 ?>
 
@@ -62,30 +54,22 @@ require 'header.php';
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">Payment Gateway</h1>
-                    <p class="text-gray-600">Secure payment processing for your dues and collection requests</p>
+                    <p class="text-gray-600">Pay your collection fees securely</p>
                 </div>
                 <div class="flex flex-col space-y-2">
                     <?php if($dues > 0): ?>
                     <div class="bg-red-100 text-red-800 px-6 py-3 rounded-lg font-semibold text-center">
                         <i class="fas fa-exclamation-circle mr-2"></i>
-                        Total Dues: ₹<?php echo number_format($dues, 2); ?>
+                        Outstanding Collection Fees: ₹<?php echo number_format($dues, 2); ?>
                     </div>
                     <?php endif; ?>
                     <div class="bg-blue-100 text-blue-800 px-6 py-3 rounded-lg font-semibold text-center">
                         <i class="fas fa-info-circle mr-2"></i>
-                        Collection Fee: ₹<?php echo number_format($COLLECTION_FEE, 2); ?>
+                        Fee per Collection: ₹<?php echo number_format($COLLECTION_FEE, 2); ?>
                     </div>
                 </div>
             </div>
         </div>
-
-        <?php if(isset($_SESSION['dues_added'])): ?>
-        <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-6 flex items-start space-x-3">
-            <i class="fas fa-check-circle mt-0.5"></i>
-            <span>₹<?php echo $COLLECTION_FEE; ?> has been added to your outstanding dues. You can now proceed with the payment.</span>
-            <?php unset($_SESSION['dues_added']); ?>
-        </div>
-        <?php endif; ?>
 
         <?php if(isset($_SESSION['payment_error'])): ?>
         <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 flex items-start space-x-3">
@@ -108,65 +92,39 @@ require 'header.php';
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Payment Form -->
             <div class="lg:col-span-2 glass rounded-2xl shadow-xl p-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-6">Make Payment</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Pay Collection Fees</h2>
                 
-                <!-- Add to Dues Section -->
-                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg mb-6">
+                <!-- Payment Information -->
+                <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-6">
                     <div class="flex items-start space-x-3">
-                        <i class="fas fa-info-circle text-yellow-600 mt-0.5"></i>
+                        <i class="fas fa-info-circle text-green-600 mt-0.5"></i>
                         <div class="flex-1">
-                            <h3 class="font-semibold text-yellow-800 mb-2">Add Collection Fee to Dues</h3>
-                            <p class="text-sm text-yellow-700 mb-3">
-                                Click the button below to add ₹<?php echo $COLLECTION_FEE; ?> to your outstanding dues. 
-                                This will allow you to pay both collection fees and existing dues together.
+                            <h3 class="font-semibold text-green-800 mb-2">Collection Fee Payment</h3>
+                            <p class="text-sm text-green-700">
+                                Your outstanding amount represents unpaid collection fees. Each collection request costs ₹<?php echo $COLLECTION_FEE; ?>.
+                                Pay now to clear your pending collection fees.
                             </p>
-                            <a href="payment.php?add_dues=true" class="inline-block">
-                                <button class="bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-yellow-700 transition-colors">
-                                    <i class="fas fa-plus-circle mr-2"></i>Add ₹<?php echo $COLLECTION_FEE; ?> to Dues
-                                </button>
-                            </a>
                         </div>
                     </div>
                 </div>
                 
                 <form method="post" id="paymentForm" action="payment_process.php" class="space-y-6">
-                    <!-- Payment Type -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-3">Payment Type</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="flex items-center space-x-2 cursor-pointer p-3 border-2 border-green-200 rounded-lg hover:border-green-500 transition-colors payment-type">
-                                <input type="radio" name="payment_type" value="dues" class="text-green-600 focus:ring-green-500" checked>
-                                <div>
-                                    <span class="font-medium text-gray-800">Outstanding Dues</span>
-                                    <p class="text-xs text-gray-600">Clear all pending dues</p>
-                                </div>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 transition-colors payment-type">
-                                <input type="radio" name="payment_type" value="collection_fee" class="text-green-600 focus:ring-green-500" disabled>
-                                <div>
-                                    <span class="font-medium text-gray-600">Collection Fee</span>
-                                    <p class="text-xs text-gray-500">Use "Add to Dues" option above</p>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
                     <!-- Amount Display -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Amount to Pay (₹)</label>
                         <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
                             <div class="flex justify-between items-center">
-                                <span class="text-lg font-semibold text-gray-800" id="amountDisplay">
+                                <span class="text-2xl font-bold text-gray-800" id="amountDisplay">
                                     ₹<?php echo number_format($dues, 2); ?>
                                 </span>
                                 <span class="text-sm text-gray-600" id="amountDescription">
-                                    Total outstanding dues
+                                    Total collection fees due
                                 </span>
                             </div>
-                            <?php if($dues >= $COLLECTION_FEE): ?>
+                            <?php if($dues > 0): ?>
                             <div class="mt-2 text-xs text-green-600">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                Includes ₹<?php echo $COLLECTION_FEE; ?> collection fee
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Covers <?php echo floor($dues / $COLLECTION_FEE); ?> collection request(s)
                             </div>
                             <?php endif; ?>
                         </div>
@@ -177,6 +135,7 @@ require 'header.php';
                             value="<?php echo $dues; ?>"
                             required
                         >
+                        <input type="hidden" name="payment_type" value="collection_fee">
                     </div>
 
                     <!-- Payment Method -->
@@ -219,14 +178,14 @@ require 'header.php';
                         id="submitButton"
                         <?php echo $dues <= 0 ? 'disabled' : ''; ?>
                     >
-                        <i class="fas fa-lock mr-2"></i>Pay ₹<span id="payButtonAmount"><?php echo number_format($dues, 2); ?></span>
+                        <i class="fas fa-lock mr-2"></i>Pay Collection Fees - ₹<span id="payButtonAmount"><?php echo number_format($dues, 2); ?></span>
                     </button>
 
                     <?php if($dues <= 0): ?>
                     <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg">
                         <div class="flex items-start space-x-3">
-                            <i class="fas fa-info-circle mt-0.5"></i>
-                            <span>You have no outstanding dues. Add collection fees to proceed with payment.</span>
+                            <i class="fas fa-check-circle mt-0.5"></i>
+                            <span>You have no outstanding collection fees. All your collection requests are paid.</span>
                         </div>
                     </div>
                     <?php endif; ?>
@@ -245,7 +204,7 @@ require 'header.php';
             <div class="space-y-6">
                 <!-- Payment History -->
                 <div class="glass rounded-2xl shadow-xl p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Payments</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Payment History</h2>
                     <div class="space-y-4 max-h-80 overflow-y-auto">
                         <?php while($payment = $res_payments->fetch_assoc()): ?>
                         <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded">
@@ -277,6 +236,7 @@ require 'header.php';
                         <div class="text-center py-8 text-gray-500">
                             <i class="fas fa-receipt text-4xl mb-3"></i>
                             <p>No payment history</p>
+                            <p class="text-sm mt-1">Your payments will appear here</p>
                         </div>
                         <?php endif; ?>
                     </div>
@@ -285,7 +245,7 @@ require 'header.php';
                 <!-- Pending Collection Requests -->
                 <?php if($res_pending_requests->num_rows > 0): ?>
                 <div class="glass rounded-2xl shadow-xl p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Pending Collection Requests</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Pending Collection Payments</h2>
                     <div class="space-y-3">
                         <?php 
                         $res_pending_requests->data_seek(0);
@@ -316,12 +276,16 @@ require 'header.php';
                     </h3>
                     <div class="space-y-2 text-sm text-blue-700">
                         <div class="flex justify-between">
-                            <span>Collection Fee:</span>
+                            <span>Fee per Collection:</span>
                             <span class="font-semibold">₹<?php echo $COLLECTION_FEE; ?></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Outstanding Dues:</span>
+                            <span>Outstanding Fees:</span>
                             <span class="font-semibold">₹<?php echo number_format($dues, 2); ?></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pending Collections:</span>
+                            <span class="font-semibold"><?php echo $res_pending_requests->num_rows; ?></span>
                         </div>
                         <div class="border-t border-blue-300 pt-2 mt-2">
                             <div class="flex items-center space-x-2">
@@ -348,7 +312,7 @@ require 'header.php';
             <div class="bg-gray-100 rounded-lg p-4 mb-4">
                 <p class="text-sm text-gray-700">
                     <strong>Amount:</strong> ₹<span id="modalAmount">0</span><br>
-                    <strong>Type:</strong> <span id="modalType">Dues</span><br>
+                    <strong>Type:</strong> <span id="modalType">Collection Fees</span><br>
                     <strong>Gateway:</strong> <span id="modalGateway">Razorpay</span>
                 </p>
             </div>
@@ -368,7 +332,6 @@ require 'header.php';
 <script src="https://js.stripe.com/v3/"></script>
 <script>
 const stripe = Stripe('<?php echo $STRIPE_PK; ?>');
-const COLLECTION_FEE = <?php echo $COLLECTION_FEE; ?>;
 const USER_DUES = <?php echo $dues; ?>;
 
 // Form submission handler
@@ -381,7 +344,7 @@ document.getElementById('paymentForm').addEventListener('submit', function(e) {
     
     // Validate amount
     if (amount <= 0) {
-        alert('Please add collection fees to your dues before proceeding with payment.');
+        alert('You have no outstanding collection fees to pay.');
         return;
     }
     
@@ -391,7 +354,7 @@ document.getElementById('paymentForm').addEventListener('submit', function(e) {
     
     // Show payment modal
     document.getElementById('modalAmount').textContent = amount;
-    document.getElementById('modalType').textContent = 'Outstanding Dues';
+    document.getElementById('modalType').textContent = 'Collection Fees';
     document.getElementById('modalGateway').textContent = paymentMethod === 'razorpay' ? 'Razorpay' : 'Stripe';
     
     document.getElementById('modalMessage').textContent = 'You will be redirected to the payment gateway';
@@ -422,7 +385,7 @@ function processRazorpayPayment() {
         amount: amount * 100, // Convert to paise
         currency: 'INR',
         name: 'Haritha Karma Sena',
-        description: 'Outstanding Dues Payment',
+        description: 'Collection Fees Payment',
         handler: function(response) {
             // Payment successful - submit form
             document.getElementById('paymentForm').submit();

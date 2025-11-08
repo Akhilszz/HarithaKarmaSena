@@ -17,13 +17,10 @@ $stats = $mysqli->query("
     FROM collection_requests
 ")->fetch_assoc();
 
-// Get complaints
-$compl = $mysqli->query("SELECT c.*, u.name FROM complaints c JOIN users u ON c.user_id=u.id ORDER BY c.created_at DESC LIMIT 5");
-
 // Get feedback
 $fb = $mysqli->query("SELECT f.*, u.name FROM feedbacks f JOIN users u ON f.user_id=u.id ORDER BY f.created_at DESC LIMIT 5");
 
-require 'header.php';
+require 'worker_header.php';
 ?>
 
 <div class="flex-1">
@@ -35,7 +32,7 @@ require 'header.php';
                     <h1 class="text-3xl font-bold text-gray-800 mb-2">
                         Welcome, <?php echo e($_SESSION['user']['name']); ?>!
                     </h1>
-                    <p class="text-gray-600">Manage collection requests and customer communications</p>
+                    <p class="text-gray-600">Manage collection requests and customer feedback</p>
                 </div>
                 <div class="mt-4 md:mt-0">
                     <div class="bg-green-100 text-green-800 px-6 py-3 rounded-lg font-semibold">
@@ -137,17 +134,21 @@ require 'header.php';
                                 <td class="px-4 py-3">
                                     <div class="flex space-x-2">
                                         <?php if($r['status'] == 'pending'): ?>
-                                            <a href='worker_action.php?action=accept&id=<?php echo $r['id']; ?>' class="inline-block">
-                                                <button class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center">
+                                            <form action="worker_action.php" method="POST" class="inline-block">
+                                                <input type="hidden" name="action" value="accept">
+                                                <input type="hidden" name="id" value="<?php echo $r['id']; ?>">
+                                                <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center">
                                                     <i class="fas fa-check mr-1"></i> Accept
                                                 </button>
-                                            </a>
+                                            </form>
                                         <?php elseif($r['status'] == 'accepted'): ?>
-                                            <a href='worker_action.php?action=collect&id=<?php echo $r['id']; ?>' class="inline-block">
-                                                <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
+                                            <form action="worker_action.php" method="POST" class="inline-block">
+                                                <input type="hidden" name="action" value="collect">
+                                                <input type="hidden" name="id" value="<?php echo $r['id']; ?>">
+                                                <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
                                                     <i class="fas fa-truck-loading mr-1"></i> Collect
                                                 </button>
-                                            </a>
+                                            </form>
                                         <?php else: ?>
                                             <span class="text-xs text-gray-500">Completed</span>
                                         <?php endif; ?>
@@ -165,83 +166,37 @@ require 'header.php';
                 </div>
             </div>
 
-            <!-- Customer Communications -->
-            <div class="space-y-6">
-                <!-- Complaints -->
-                <div class="glass rounded-2xl shadow-xl p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
-                        Recent Complaints
-                    </h2>
-                    <div class="space-y-4 max-h-80 overflow-y-auto">
-                        <?php while($c = $compl->fetch_assoc()): ?>
-                        <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <p class="font-semibold text-gray-800"><?php echo e($c['name']); ?></p>
-                                    <p class="text-sm text-gray-700 mt-1"><?php echo e($c['message']); ?></p>
-                                </div>
-                                <span class="px-2 py-1 rounded-full text-xs font-semibold <?php echo $c['status'] == 'resolved' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'; ?>">
-                                    <?php echo ucfirst($c['status']); ?>
-                                </span>
-                            </div>
-                            <p class="text-xs text-gray-500">
-                                <i class="far fa-clock mr-1"></i>
-                                <?php echo date('M j, Y g:i A', strtotime($c['created_at'])); ?>
-                            </p>
-                            <?php if($c['status'] == 'open'): ?>
-                            <div class="mt-3 text-right">
-                                <a href='resolve_complaint.php?id=<?php echo $c['id']; ?>' class="inline-block">
-                                    <button class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors">
-                                        <i class="fas fa-check mr-1"></i> Resolve
-                                    </button>
-                                </a>
-                            </div>
-                            <?php endif; ?>
+            <!-- Customer Feedback -->
+            <div class="glass rounded-2xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-comment-dots text-blue-600 mr-3"></i>
+                    Recent Feedback
+                </h2>
+                <div class="space-y-4 max-h-80 overflow-y-auto">
+                    <?php while($f = $fb->fetch_assoc()): ?>
+                    <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="font-semibold text-gray-800"><?php echo e($f['name']); ?></p>
+                            <span class="text-xs text-gray-500">
+                                <?php echo date('M j, Y', strtotime($f['created_at'])); ?>
+                            </span>
                         </div>
-                        <?php endwhile; ?>
-                        
-                        <?php if($compl->num_rows === 0): ?>
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-inbox text-4xl mb-3"></i>
-                            <p>No complaints</p>
+                        <p class="text-sm text-gray-700"><?php echo e($f['message']); ?></p>
+                        <?php if(!empty($f['admin_response'])): ?>
+                        <div class="mt-3 p-3 bg-white rounded border">
+                            <p class="text-sm font-semibold text-gray-800 mb-1">Admin Response:</p>
+                            <p class="text-sm text-gray-700"><?php echo e($f['admin_response']); ?></p>
                         </div>
                         <?php endif; ?>
                     </div>
-                </div>
-
-                <!-- Feedback -->
-                <div class="glass rounded-2xl shadow-xl p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                        <i class="fas fa-comment-dots text-blue-600 mr-3"></i>
-                        Recent Feedback
-                    </h2>
-                    <div class="space-y-4 max-h-80 overflow-y-auto">
-                        <?php while($f = $fb->fetch_assoc()): ?>
-                        <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
-                            <div class="flex justify-between items-start mb-2">
-                                <p class="font-semibold text-gray-800"><?php echo e($f['name']); ?></p>
-                                <span class="text-xs text-gray-500">
-                                    <?php echo date('M j, Y', strtotime($f['created_at'])); ?>
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-700"><?php echo e($f['message']); ?></p>
-                            <?php if(!empty($f['admin_response'])): ?>
-                            <div class="mt-3 p-3 bg-white rounded border">
-                                <p class="text-sm font-semibold text-gray-800 mb-1">Admin Response:</p>
-                                <p class="text-sm text-gray-700"><?php echo e($f['admin_response']); ?></p>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                        <?php endwhile; ?>
-                        
-                        <?php if($fb->num_rows === 0): ?>
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-comment-slash text-4xl mb-3"></i>
-                            <p>No feedback</p>
-                        </div>
-                        <?php endif; ?>
+                    <?php endwhile; ?>
+                    
+                    <?php if($fb->num_rows === 0): ?>
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-comment-slash text-4xl mb-3"></i>
+                        <p>No feedback</p>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -253,7 +208,7 @@ require 'header.php';
                 Quick Actions
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="collection_requests.php" class="bg-green-100 border-2 border-green-200 rounded-xl p-4 text-center hover:border-green-500 transition-colors group">
+                <a href="collection_pending.php" class="bg-green-100 border-2 border-green-200 rounded-xl p-4 text-center hover:border-green-500 transition-colors group">
                     <div class="bg-green-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-green-700 transition-colors">
                         <i class="fas fa-list text-white text-xl"></i>
                     </div>
@@ -261,20 +216,20 @@ require 'header.php';
                     <p class="text-sm text-gray-600 mt-1">See complete request list</p>
                 </a>
 
-                <a href="complaints.php" class="bg-red-100 border-2 border-red-200 rounded-xl p-4 text-center hover:border-red-500 transition-colors group">
-                    <div class="bg-red-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-red-700 transition-colors">
-                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-800">Manage Complaints</h3>
-                    <p class="text-sm text-gray-600 mt-1">Handle customer issues</p>
-                </a>
-
-                <a href="feedback.php" class="bg-blue-100 border-2 border-blue-200 rounded-xl p-4 text-center hover:border-blue-500 transition-colors group">
+                <a href="view_feedback.php" class="bg-blue-100 border-2 border-blue-200 rounded-xl p-4 text-center hover:border-blue-500 transition-colors group">
                     <div class="bg-blue-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-700 transition-colors">
                         <i class="fas fa-comments text-white text-xl"></i>
                     </div>
                     <h3 class="font-semibold text-gray-800">View Feedback</h3>
                     <p class="text-sm text-gray-600 mt-1">Read customer feedback</p>
+                </a>
+                
+                <a href="profile.php" class="bg-purple-100 border-2 border-purple-200 rounded-xl p-4 text-center hover:border-purple-500 transition-colors group">
+                    <div class="bg-purple-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800">My Profile</h3>
+                    <p class="text-sm text-gray-600 mt-1">Update your information</p>
                 </a>
             </div>
         </div>

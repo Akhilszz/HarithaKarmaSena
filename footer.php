@@ -33,9 +33,7 @@
       <div class="col-span-1">
         <h4 class="font-semibold mb-4">Support</h4>
         <ul class="space-y-2 text-sm">
-          <li><a href="help.php" class="text-green-100 hover:text-white transition-colors">Help Center</a></li>
-          <li><a href="contact.php" class="text-green-100 hover:text-white transition-colors">Contact Us</a></li>
-          <li><a href="feedback.php" class="text-green-100 hover:text-white transition-colors">Feedback</a></li>
+         <li><a href="feedback.php" class="text-green-100 hover:text-white transition-colors">Feedback</a></li>
         </ul>
       </div>
 
