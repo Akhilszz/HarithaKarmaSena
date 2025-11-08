@@ -98,6 +98,9 @@ if(!isset($page_title)) $page_title = "Admin Dashboard";
                 <a href="admin_users.php" class="hover:text-emerald-200 transition py-2 px-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'admin_users.php' ? 'bg-emerald-800 bg-opacity-30' : ''; ?>">
                     <i class="fas fa-users mr-2"></i>Users
                 </a>
+                <a href="admin_complaints.php" class="hover:text-emerald-200 transition py-2 px-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'admin_users.php' ? 'bg-emerald-800 bg-opacity-30' : ''; ?>">
+                    <i class="fas fa-users mr-2"></i>Complaints
+                </a>
                 <a href="admin_collections.php" class="hover:text-emerald-200 transition py-2 px-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'admin_collections.php' ? 'bg-emerald-800 bg-opacity-30' : ''; ?>">
                     <i class="fas fa-trash mr-2"></i>Collections
                 </a>
