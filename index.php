@@ -220,7 +220,7 @@ require 'config.php';
     <header class="flex items-center justify-between pb-6 mb-8 border-b-2 border-green-100">
       <div class="flex items-start space-x-3">
         <div class="bg-gradient-green p-2 rounded-lg hidden md:block pulse-badge">
-          <img src="assets/img/leaf.svg" alt="" class="h-8 w-8" loading="lazy">
+          <img src="assets/img/leaf.jpeg" alt="" class="h-8 w-8" loading="lazy">
         </div>
         <div>
          <h1 style="
@@ -583,7 +583,7 @@ require 'config.php';
       <div class="mb-6">
         <div class="flex items-center justify-center space-x-2 mb-3">
           <div class="bg-gradient-green p-2 rounded-lg">
-            <img src="assets/img/leaf.svg" alt="" class="h-6 w-6" loading="lazy">
+            <img src="assets/img/leaf.jpeg" alt="" class="h-6 w-6" loading="lazy">
           </div>
           <span  <h1 style="
   font-size: 19px;

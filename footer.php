@@ -9,7 +9,7 @@
       <div class="col-span-1">
         <div class="flex items-center space-x-3 mb-4">
           <div class="bg-white p-2 rounded-lg">
-            <img src="assets/img/leaf.svg" alt="Haritha Karma Sena" class="h-8 w-8">
+            <img src="assets/img/leaf.jpeg" alt="Haritha Karma Sena" class="h-8 w-8">
           </div>
           <h3 class="text-xl font-bold">Haritha Karma Sena</h3>
         </div>

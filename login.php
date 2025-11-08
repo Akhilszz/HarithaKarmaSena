@@ -180,7 +180,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
       <!-- Logo and Brand -->
       <div class="text-center mb-8">
         <div class="inline-block bg-gradient-green p-4 rounded-2xl pulse-badge mb-4 shadow-lg">
-          <img src="assets/img/leaf.svg" alt="Haritha Karma Sena" class="h-12 w-12 float-leaf" loading="eager">
+          <img src="assets/img/leaf.jpeg" alt="Haritha Karma Sena" class="h-12 w-12 float-leaf" loading="eager">
         </div>
         <h1 style="
   font-size: 48px;

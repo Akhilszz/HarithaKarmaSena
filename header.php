@@ -40,7 +40,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
       <!-- Logo -->
       <div class="flex items-center space-x-3">
         <div class="bg-white p-2 rounded-lg shadow-lg">
-          <img src="assets/img/leaf.svg" alt="Haritha Karma Sena" class="h-8 w-8">
+          <img src="assets/img/leaf.jpeg" alt="Haritha Karma Sena" class="h-8 w-8">
         </div>
         <h1 class="text-white text-2xl font-bold">Haritha Karma Sena</h1>
       </div>
