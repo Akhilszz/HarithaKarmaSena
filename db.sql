@@ -42,4 +42,18 @@ CREATE TABLE complaints (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  collection_request_id INT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  payment_method ENUM('upi', 'card', 'cash', 'net_banking') NOT NULL,
+  payment_status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+  transaction_id VARCHAR(100) UNIQUE,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (collection_request_id) REFERENCES collection_requests(id) ON DELETE SET NULL
+);
 -- Note: Run setup_admin.php to create the default admin user with secure password hashing.
