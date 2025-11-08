@@ -24,6 +24,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
       font-size: 48px;
       font-weight: 800;
       background: linear-gradient(90deg, #d4e157, #7cb342, #558b2f);
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
