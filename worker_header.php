@@ -9,6 +9,38 @@
 // }
 
 if(!isset($page_title)) $page_title = "Haritha Karma Sena";
+
+// Get worker-specific data for header
+$worker_id = $_SESSION['user']['id'] ?? null;
+$pending_count = 0;
+$today_stats = ['total' => 0, 'completed' => 0];
+
+if($worker_id) {
+    // Get pending count for this worker
+    $pending_stmt = $mysqli->prepare("
+        SELECT COUNT(*) as count 
+        FROM collection_requests 
+        WHERE status = 'pending' AND assigned_worker_id = ?
+    ");
+    $pending_stmt->bind_param('i', $worker_id);
+    $pending_stmt->execute();
+    $pending_result = $pending_stmt->get_result()->fetch_assoc();
+    $pending_count = $pending_result['count'] ?? 0;
+    
+    // Get today's stats for this worker
+    $today = date('Y-m-d');
+    $today_stmt = $mysqli->prepare("
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN status = 'collected' THEN 1 ELSE 0 END) as completed
+        FROM collection_requests 
+        WHERE assigned_worker_id = ? AND DATE(created_at) = ?
+    ");
+    $today_stmt->bind_param('is', $worker_id, $today);
+    $today_stmt->execute();
+    $today_result = $today_stmt->get_result()->fetch_assoc();
+    $today_stats = $today_result ?: ['total' => 0, 'completed' => 0];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -123,10 +155,8 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                 </a>
                 <a href="collection_pending.php" class="hover:text-emerald-200 transition py-2 px-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'collection_pending.php' ? 'bg-emerald-800 bg-opacity-30' : ''; ?>">
-                    <i class="fas fa-list-alt mr-2"></i>Collection Pending
-                    <?php
-                    $pending_count = $mysqli->query("SELECT COUNT(*) as count FROM collection_requests WHERE status = 'pending'")->fetch_assoc()['count'] ?? 0;
-                    if($pending_count > 0): ?>
+                    <i class="fas fa-list-alt mr-2"></i>My Pending
+                    <?php if($pending_count > 0): ?>
                     <span class="ml-1 bg-orange-500 text-white text-xs px-2 py-1 rounded-full"><?php echo $pending_count; ?></span>
                     <?php endif; ?>
                 </a>
@@ -136,59 +166,10 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                 <a href="view_feedback.php" class="hover:text-emerald-200 transition py-2 px-3 rounded-lg <?php echo basename($_SERVER['PHP_SELF']) == 'view_feedback.php' ? 'bg-emerald-800 bg-opacity-30' : ''; ?>">
                     <i class="fas fa-comments mr-2"></i>Feedback
                 </a>
-                <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition">
-          <i class="fas fa-sign-out-alt mr-1"></i>Logout
-        </a>
             </div>
 
             <!-- User Menu & Notifications -->
             <div class="flex items-center space-x-4">
-                <!-- Notifications -->
-                <div class="relative">
-                    <button id="notificationButton" class="text-white p-2 rounded-lg hover:bg-emerald-800 hover:bg-opacity-50 transition relative">
-                        <i class="fas fa-bell text-lg"></i>
-                        <span class="notification-badge">3</span>
-                    </button>
-                    
-                    <!-- Notification Dropdown -->
-                    <div id="notificationDropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50">
-                        <div class="p-4 border-b border-gray-200 bg-emerald-600 text-white rounded-t-lg">
-                            <h3 class="font-semibold">Notifications</h3>
-                        </div>
-                        <div class="max-h-96 overflow-y-auto">
-                            <!-- Notification Items -->
-                            <div class="p-4 border-b border-gray-100 hover:bg-gray-50">
-                                <div class="flex items-start space-x-3">
-                                    <div class="bg-emerald-100 p-2 rounded-full">
-                                        <i class="fas fa-truck-loading text-emerald-600"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-sm font-medium text-gray-800">New collection request assigned</p>
-                                        <p class="text-xs text-gray-600 mt-1">5 minutes ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="p-4 border-b border-gray-100 hover:bg-gray-50">
-                                <div class="flex items-start space-x-3">
-                                    <div class="bg-blue-100 p-2 rounded-full">
-                                        <i class="fas fa-comment text-blue-600"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-sm font-medium text-gray-800">New feedback received</p>
-                                        <p class="text-xs text-gray-600 mt-1">1 hour ago</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                            <a href="notifications.php" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
-                                View All Notifications
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- User Menu -->
                 <div class="relative">
                     <button id="userMenuButton" class="flex items-center space-x-3 text-white p-2 rounded-lg hover:bg-emerald-800 hover:bg-opacity-50 transition">
@@ -213,10 +194,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                                 <i class="fas fa-user-cog w-4 text-emerald-600"></i>
                                 <span>Profile Settings</span>
                             </a>
-                            <a href="change_password.php" class="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg transition-colors">
-                                <i class="fas fa-lock w-4 text-emerald-600"></i>
-                                <span>Change Password</span>
-                            </a>
+                           
                         </div>
                         <div class="p-2 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                             <a href="logout.php" class="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -226,6 +204,11 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                         </div>
                     </div>
                 </div>
+
+                <!-- Logout Button -->
+                <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition flex items-center">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
             </div>
         </div>
     </div>
@@ -254,17 +237,15 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
     </div>
 
     <!-- User Profile Section -->
-    <div class="p-6 border-b border-gray-200">
+    <div class="p-4 border-b border-gray-200 bg-emerald-50">
         <div class="flex items-center space-x-3">
-            <div class="bg-emerald-100 w-12 h-12 rounded-full flex items-center justify-center">
-                <i class="fas fa-user-hard-hat text-emerald-600 text-lg"></i>
+            <div class="bg-emerald-600 w-10 h-10 rounded-full flex items-center justify-center border-2 border-emerald-300">
+                <i class="fas fa-user-hard-hat text-white text-sm"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-gray-800 truncate"><?php echo e($_SESSION['user']['name'] ?? 'Worker'); ?></p>
-                <p class="text-xs text-gray-600 truncate"><?php echo e($_SESSION['user']['email'] ?? 'worker@email.com'); ?></p>
-                <span class="inline-block mt-1 px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-semibold">
-                    <i class="fas fa-badge-check mr-1"></i>Worker
-                </span>
+                <p class="text-sm font-medium text-gray-900 truncate"><?php echo e($_SESSION['user']['name'] ?? 'Worker'); ?></p>
+                <p class="text-xs text-emerald-600 truncate">Worker</p>
+                <p class="text-xs text-gray-500 truncate"><?php echo e($_SESSION['user']['email'] ?? 'worker@email.com'); ?></p>
             </div>
         </div>
     </div>
@@ -278,7 +259,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
 
         <a href="collection_pending.php" class="flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors <?php echo basename($_SERVER['PHP_SELF']) == 'collection_pending.php' ? 'nav-active' : ''; ?>">
             <i class="fas fa-list-alt w-5"></i>
-            <span>Collection Requests</span>
+            <span>My Pending</span>
             <?php if($pending_count > 0): ?>
             <span class="ml-auto bg-orange-500 text-white text-xs px-2 py-1 rounded-full"><?php echo $pending_count; ?></span>
             <?php endif; ?>
@@ -312,23 +293,13 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
         <div class="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
             <h3 class="text-xs font-semibold text-emerald-800 uppercase mb-2">Today's Summary</h3>
             <div class="space-y-2">
-                <?php
-                $today = date('Y-m-d');
-                $today_stats = $mysqli->query("
-                    SELECT 
-                        COUNT(*) as total,
-                        SUM(CASE WHEN status = 'collected' THEN 1 ELSE 0 END) as completed
-                    FROM collection_requests 
-                    WHERE DATE(created_at) = '$today'
-                ")->fetch_assoc();
-                ?>
                 <div class="flex justify-between text-sm">
                     <span class="text-emerald-700">Assigned:</span>
-                    <span class="font-semibold text-emerald-900"><?php echo $today_stats['total'] ?? 0; ?></span>
+                    <span class="font-semibold text-emerald-900"><?php echo $today_stats['total']; ?></span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-emerald-700">Completed:</span>
-                    <span class="font-semibold text-green-600"><?php echo $today_stats['completed'] ?? 0; ?></span>
+                    <span class="font-semibold text-green-600"><?php echo $today_stats['completed']; ?></span>
                 </div>
             </div>
         </div>
@@ -344,7 +315,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                 <i class="fas fa-check-circle mr-3 text-green-600"></i>
                 <span class="block sm:inline"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></span>
             </div>
-            <button type="button" class="text-green-700 hover:text-green-900">
+            <button type="button" class="text-green-700 hover:text-green-900" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -356,7 +327,7 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
                 <i class="fas fa-exclamation-triangle mr-3 text-red-600"></i>
                 <span class="block sm:inline"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></span>
             </div>
-            <button type="button" class="text-red-700 hover:text-red-900">
+            <button type="button" class="text-red-700 hover:text-red-900" onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -364,3 +335,46 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
 
     <!-- Page Content -->
     <main class="flex-1">
+
+<script>
+// Mobile Menu Toggle
+document.getElementById('mobileMenuButton').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.add('mobile-open');
+    document.getElementById('mobileOverlay').classList.remove('hidden');
+});
+
+document.getElementById('closeMobileMenu').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('mobileOverlay').classList.add('hidden');
+});
+
+document.getElementById('mobileOverlay').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    this.classList.add('hidden');
+});
+
+// User Dropdown Toggle
+document.getElementById('userMenuButton').addEventListener('click', function() {
+    document.getElementById('userDropdown').classList.toggle('hidden');
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const userDropdown = document.getElementById('userDropdown');
+    const userMenuButton = document.getElementById('userMenuButton');
+    
+    if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+        userDropdown.classList.add('hidden');
+    }
+});
+
+// Auto-hide flash messages after 5 seconds
+setTimeout(() => {
+    const flashMessages = document.querySelectorAll('[role="alert"]');
+    flashMessages.forEach(message => {
+        message.style.transition = 'opacity 0.5s ease';
+        message.style.opacity = '0';
+        setTimeout(() => message.remove(), 500);
+    });
+}, 5000);
+</script>

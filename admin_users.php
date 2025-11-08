@@ -45,9 +45,7 @@ require 'admin_header.php';
                     <a href="admin_add_user.php" class="bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold transition-colors">
                         <i class="fas fa-plus mr-2"></i>Add User
                     </a>
-                    <button class="bg-green-800 bg-opacity-50 text-white px-4 py-2 rounded-lg font-semibold">
-                        <i class="fas fa-download mr-2"></i>Export
-                    </button>
+                    
                 </div>
             </div>
         </div>
@@ -184,14 +182,11 @@ require 'admin_header.php';
                                 <a href="admin_edit_user.php?id=<?php echo $user['id']; ?>" class="text-blue-600 hover:text-blue-900 text-sm font-medium">
                                     <i class="fas fa-edit mr-1"></i>Edit
                                 </a>
-                                <?php if($user['id'] !== $_SESSION['user']['id']): ?>
-                                <a href="?action=toggle_status&id=<?php echo $user['id']; ?>" class="text-orange-600 hover:text-orange-900 text-sm font-medium">
-                                    <i class="fas fa-ban mr-1"></i>Disable
-                                </a>
+                                
                                 <a href="?action=delete&id=<?php echo $user['id']; ?>" onclick="return confirm('Are you sure you want to delete this user?')" class="text-red-600 hover:text-red-900 text-sm font-medium">
                                     <i class="fas fa-trash mr-1"></i>Delete
                                 </a>
-                                <?php endif; ?>
+                              
                             </div>
                         </td>
                     </tr>

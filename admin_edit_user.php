@@ -291,12 +291,7 @@ require 'admin_header.php';
         </h3>
         <p class="text-red-700 mb-4">These actions are irreversible. Please be certain before proceeding.</p>
         <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-            <button 
-                onclick="confirmAction('suspend')"
-                class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center"
-            >
-                <i class="fas fa-ban mr-2"></i>Suspend User
-            </button>
+           
             <button 
                 onclick="confirmAction('delete')"
                 class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center"

@@ -51,21 +51,50 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
         <a href="collection_requests.php" class="hover:text-green-200 transition">Collection Requests</a>
         <a href="payment.php" class="hover:text-green-200 transition">Payments</a>
         <a href="feedback.php" class="hover:text-green-200 transition">Feedback</a>
-
         <a href="complaints.php" class="hover:text-green-200 transition">Complaints</a>
       </div>
 
       <!-- User Menu -->
       <div class="flex items-center space-x-4">
-        <span class="text-white text-sm">
-          <i class="fas fa-user-circle mr-1"></i>
-          <?php echo e($_SESSION['user']['name'] ?? 'User'); ?>
-        </span>
+        <div class="relative">
+            <button id="userMenuButton" class="flex items-center space-x-2 text-white hover:text-green-200 transition-colors p-2 rounded-lg hover:bg-green-800 hover:bg-opacity-50">
+                <div class="bg-green-800 w-8 h-8 rounded-full flex items-center justify-center border-2 border-green-300">
+                    <i class="fas fa-user-circle text-green-100 text-sm"></i>
+                </div>
+                <div class="text-left">
+                    <p class="text-sm font-medium"><?php echo e($_SESSION['user']['name'] ?? 'User'); ?></p>
+                </div>
+                <i class="fas fa-chevron-down text-green-200 text-xs"></i>
+            </button>
 
-        <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition">
-          <i class="fas fa-sign-out-alt mr-1"></i>Logout
-        </a>
+            <!-- User Dropdown Menu -->
+            <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 hidden z-50">
+                <div class="p-4 border-b border-gray-200 bg-green-600 text-white rounded-t-lg">
+                    <p class="text-sm font-medium"><?php echo e($_SESSION['user']['name'] ?? 'User'); ?></p>
+                    <p class="text-xs text-green-200">Customer</p>
+                </div>
+                <div class="p-2">
+                    <a href="profile.php" class="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-green-50 rounded-lg transition-colors">
+                        <i class="fas fa-user-cog w-4 text-green-600"></i>
+                        <span>Profile Settings</span>
+                    </a>
+                    <a href="user_dashboard.php" class="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-green-50 rounded-lg transition-colors">
+                        <i class="fas fa-tachometer-alt w-4 text-green-600"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="p-2 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                    <a href="logout.php" class="flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <i class="fas fa-sign-out-alt w-4"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
       </div>
+       <a href="logout.php" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm transition flex items-center">
+                    <i class="fas fa-sign-out-alt mr-1"></i>Logout
+                </a>
 
     </div>
   </div>
@@ -75,9 +104,41 @@ if(!isset($page_title)) $page_title = "Haritha Karma Sena";
     <a href="user_dashboard.php" class="block py-1">Dashboard</a>
     <a href="collection_requests.php" class="block py-1">Collection Requests</a>
     <a href="payment.php" class="block py-1">Payments</a>
+    <a href="feedback.php" class="block py-1">Feedback</a>
     <a href="complaints.php" class="block py-1">Complaints</a>
-    <a href="feedback.php" class="hover:text-green-200 transition">Feedback</a>
-
     <a href="logout.php" class="block py-1 text-red-600">Logout</a>
   </div>
 </nav>
+
+<!-- JavaScript for User Dropdown -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userMenuButton = document.getElementById('userMenuButton');
+    const userDropdown = document.getElementById('userDropdown');
+
+    if(userMenuButton && userDropdown) {
+        // Toggle dropdown on button click
+        userMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            userDropdown.classList.add('hidden');
+        });
+
+        // Prevent dropdown from closing when clicking inside it
+        userDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Close dropdown when pressing Escape key
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'Escape') {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>

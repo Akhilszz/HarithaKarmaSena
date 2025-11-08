@@ -138,74 +138,7 @@ require 'admin_header.php';
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Recent Activities -->
-        <div class="lg:col-span-2">
-            <div class="bg-white rounded-2xl shadow-xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                        <i class="fas fa-history text-blue-600 mr-3"></i>
-                        Recent Activities
-                    </h2>
-                    <a href="admin_activities.php" class="text-sm text-green-600 hover:text-green-700 font-medium">
-                        View All
-                    </a>
-                </div>
-                <div class="space-y-4">
-                    <?php while($activity = $recent_activities->fetch_assoc()): ?>
-                    <div class="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                        <div class="bg-<?php echo $activity['type'] == 'collection' ? 'green' : 'blue'; ?>-100 p-2 rounded-lg">
-                            <i class="fas fa-<?php echo $activity['type'] == 'collection' ? 'trash' : 'comment'; ?> text-<?php echo $activity['type'] == 'collection' ? 'green' : 'blue'; ?>-600"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-800">
-                                <?php echo e($activity['name']); ?> - 
-                                <?php echo $activity['type'] == 'collection' ? 'Collection Request' : 'Feedback'; ?>
-                            </p>
-                            <p class="text-xs text-gray-500">
-                                <?php echo date('M j, g:i A', strtotime($activity['created_at'])); ?>
-                            </p>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                            <?php echo $activity['status'] == 'pending' ? 'bg-orange-200 text-orange-800' : 'bg-green-200 text-green-800'; ?>">
-                            <?php echo ucfirst($activity['status']); ?>
-                        </span>
-                    </div>
-                    <?php endwhile; ?>
-                </div>
-            </div>
-        </div>
-
-        <!-- Worker Performance -->
-        <div class="bg-white rounded-2xl shadow-xl p-6">
-            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <i class="fas fa-chart-line text-green-600 mr-3"></i>
-                Top Workers
-            </h2>
-            <div class="space-y-4">
-                <?php while($worker = $workers_performance->fetch_assoc()): ?>
-                <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user-hard-hat text-green-600"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-800"><?php echo e($worker['name']); ?></p>
-                            <p class="text-xs text-gray-500"><?php echo $worker['total_collections']; ?> collections</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="flex items-center space-x-1">
-                            <i class="fas fa-star text-yellow-400"></i>
-                            <span class="text-sm font-semibold"><?php echo number_format($worker['avg_rating'] ?? 0, 1); ?></span>
-                        </div>
-                        <p class="text-xs text-gray-500">Rating</p>
-                    </div>
-                </div>
-                <?php endwhile; ?>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">

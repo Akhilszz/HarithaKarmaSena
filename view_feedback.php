@@ -230,7 +230,7 @@ require 'worker_header.php';
                         </div>
 
                         <!-- Actions -->
-                        <div class="lg:w-48 flex lg:flex-col gap-2">
+                        <!-- <div class="lg:w-48 flex lg:flex-col gap-2">
                             <button onclick="viewFeedbackDetails(<?php echo $feedback['id']; ?>)" class="flex-1 lg:flex-none bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
                                 <i class="fas fa-eye mr-2"></i>View Details
                             </button>
@@ -239,11 +239,11 @@ require 'worker_header.php';
                             <button onclick="suggestResponse(<?php echo $feedback['id']; ?>)" class="flex-1 lg:flex-none bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
                                 <i class="fas fa-lightbulb mr-2"></i>Suggest Response
                             </button>
-                            <?php endif; ?>
+                            <?php endif; ?> -->
                             
-                            <button onclick="shareFeedback(<?php echo $feedback['id']; ?>)" class="flex-1 lg:flex-none bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
+                            <!-- <button onclick="shareFeedback(<?php echo $feedback['id']; ?>)" class="flex-1 lg:flex-none bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center">
                                 <i class="fas fa-share mr-2"></i>Share
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                 </div>
@@ -267,7 +267,7 @@ require 'worker_header.php';
                     <?php endif; ?>
                 </p>
                 <?php if(!empty($search) || $filter !== 'all'): ?>
-                <a href="feedback.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center">
+                <a href="view_feedback.php" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center">
                     <i class="fas fa-refresh mr-2"></i>View All Feedback
                 </a>
                 <?php endif; ?>

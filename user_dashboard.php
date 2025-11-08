@@ -333,6 +333,13 @@ require 'header.php';
         <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">Feedback</h3>
         <p class="text-sm text-gray-600 mt-1">Share your suggestions</p>
       </a>
+       <a href="profile.php" class="bg-purple-100 border-2 border-purple-200 rounded-xl p-4 text-center hover:border-purple-500 transition-colors group">
+                    <div class="bg-purple-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800">My Profile</h3>
+                    <p class="text-sm text-gray-600 mt-1">Update your information</p>
+                </a>
     </div>
 
     <!-- Upcoming Collections -->

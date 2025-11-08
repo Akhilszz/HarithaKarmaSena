@@ -187,12 +187,7 @@ require 'admin_header.php';
                                     <i class="fas fa-check mr-1"></i>Mark Paid
                                 </a>
                                 <?php endif; ?>
-                                <button class="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                                    <i class="fas fa-receipt mr-1"></i>Invoice
-                                </button>
-                                <a href="admin_collections.php" class="text-gray-600 hover:text-gray-900 text-sm font-medium">
-                                    <i class="fas fa-eye mr-1"></i>View
-                                </a>
+                               
                             </div>
                         </td>
                     </tr>

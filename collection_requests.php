@@ -8,6 +8,39 @@ if(!is_logged_in() || $_SESSION['user']['role']!=='user'){
 $uid = $_SESSION['user']['id'];
 $page_title = "Collection Requests";
 
+// Handle cancellation if requested
+if(isset($_POST['cancel_request']) && isset($_POST['request_id'])) {
+    $request_id = intval($_POST['request_id']);
+    
+    // Verify the request belongs to the current user and is pending
+    $verify_stmt = $mysqli->prepare('SELECT id FROM collection_requests WHERE id=? AND user_id=? AND status="pending"');
+    $verify_stmt->bind_param('ii', $request_id, $uid);
+    $verify_stmt->execute();
+    $verify_result = $verify_stmt->get_result();
+    
+    if($verify_result->num_rows === 1) {
+        // Update the status to cancelled
+        $update_stmt = $mysqli->prepare('UPDATE collection_requests SET status="cancelled", updated_at=NOW() WHERE id=?');
+        $update_stmt->bind_param('i', $request_id);
+        
+        if($update_stmt->execute()) {
+            $_SESSION['success_msg'] = "Request #{$request_id} has been cancelled successfully.";
+        } else {
+            $_SESSION['error_msg'] = "Failed to cancel the request. Please try again.";
+        }
+        
+        $update_stmt->close();
+        
+        // Redirect to avoid form resubmission
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        $_SESSION['error_msg'] = "Request not found or cannot be cancelled.";
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+}
+
 // Get all requests
 $reqs = $mysqli->prepare('SELECT * FROM collection_requests WHERE user_id=? ORDER BY created_at DESC');
 $reqs->bind_param('i', $uid); 
@@ -34,6 +67,25 @@ require 'header.php';
 
 <div class="flex-1">
   <div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Success/Error Messages -->
+    <?php if(isset($_SESSION['success_msg'])): ?>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                <?php echo $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    
+    <?php if(isset($_SESSION['error_msg'])): ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <?php echo $_SESSION['error_msg']; unset($_SESSION['error_msg']); ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Page Header -->
     <div class="glass rounded-2xl shadow-xl p-8 gradient-border mb-8">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -137,19 +189,22 @@ require 'header.php';
               <td class="px-6 py-4">
                 <div class="flex space-x-2">
                   <!-- View Details -->
-                  <button onclick="showRequestDetails(<?php echo $r['id']; ?>)" 
+                  <!-- <button onclick="showRequestDetails(<?php echo $r['id']; ?>)" 
                           class="text-blue-600 hover:text-blue-800 text-sm transition-colors"
                           title="View Details">
                     <i class="fas fa-eye"></i>
-                  </button>
+                  </button> -->
                   
                   <!-- Cancel Request (only if pending) -->
                   <?php if($r['status'] == 'pending'): ?>
-                    <button onclick="cancelRequest(<?php echo $r['id']; ?>)" 
-                            class="text-red-600 hover:text-red-800 text-sm transition-colors"
-                            title="Cancel Request">
-                      <i class="fas fa-times"></i>
-                    </button>
+                    <form method="POST" class="inline" onsubmit="return confirmCancel()">
+                      <input type="hidden" name="request_id" value="<?php echo $r['id']; ?>">
+                      <button type="submit" name="cancel_request" 
+                              class="text-red-600 hover:text-red-800 text-sm transition-colors"
+                              title="Cancel Request">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </form>
                   <?php endif; ?>
                   
                   <!-- Repeat Request (if collected or cancelled) -->
@@ -239,12 +294,8 @@ function showRequestDetails(requestId) {
   document.getElementById('requestModal').classList.remove('hidden');
 }
 
-function cancelRequest(requestId) {
-  if(confirm('Are you sure you want to cancel this collection request?')) {
-    // In a real application, you would make an AJAX call here
-    alert(`Request #${requestId} cancellation would be processed here.`);
-    // window.location.href = `cancel_request.php?id=${requestId}`;
-  }
+function confirmCancel() {
+  return confirm('Are you sure you want to cancel this collection request? This action cannot be undone.');
 }
 
 function repeatRequest(requestId) {
