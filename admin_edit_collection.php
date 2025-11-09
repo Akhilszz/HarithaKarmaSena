@@ -193,16 +193,20 @@ require 'admin_header.php';
                     </select>
                 </div>
 
-                <!-- Payment Status -->
+                <!-- Payment Status (Read-only) -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Payment Status</label>
-                    <select 
-                        name="payment_status"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    >
-                        <option value="pending" <?php echo $collection['payment_status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="paid" <?php echo $collection['payment_status'] === 'paid' ? 'selected' : ''; ?>>Paid</option>
-                    </select>
+                    <div class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
+                        <?php 
+                        $payment_status_text = $collection['payment_status'] === 'paid' ? 'Paid' : 'Pending';
+                        $payment_status_color = $collection['payment_status'] === 'paid' ? 'text-green-600' : 'text-yellow-600';
+                        ?>
+                        <span class="<?php echo $payment_status_color; ?> font-medium">
+                            <?php echo $payment_status_text; ?>
+                        </span>
+                    </div>
+                    <!-- Hidden input to maintain the payment_status value in form submission -->
+                    <input type="hidden" name="payment_status" value="<?php echo $collection['payment_status']; ?>">
                 </div>
 
                 <!-- Assigned Worker -->
