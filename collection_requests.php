@@ -13,29 +13,54 @@ if(isset($_POST['cancel_request']) && isset($_POST['request_id'])) {
     $request_id = intval($_POST['request_id']);
     
     // Verify the request belongs to the current user and is pending
-    $verify_stmt = $mysqli->prepare('SELECT id FROM collection_requests WHERE id=? AND user_id=? AND status="pending"');
+    $verify_stmt = $mysqli->prepare('SELECT id, status, payment_status FROM collection_requests WHERE id=? AND user_id=? AND status="pending"');
     $verify_stmt->bind_param('ii', $request_id, $uid);
     $verify_stmt->execute();
     $verify_result = $verify_stmt->get_result();
     
     if($verify_result->num_rows === 1) {
-        // Update the status to cancelled
-        $update_stmt = $mysqli->prepare('UPDATE collection_requests SET status="cancelled", updated_at=NOW() WHERE id=?');
-        $update_stmt->bind_param('i', $request_id);
+        $request_data = $verify_result->fetch_assoc();
+        $current_payment_status = $request_data['payment_status'];
         
-        if($update_stmt->execute()) {
-            $_SESSION['success_msg'] = "Request #{$request_id} has been cancelled successfully.";
-        } else {
+        // Start transaction
+        $mysqli->begin_transaction();
+        
+        try {
+            // Determine the new payment status based on current payment status
+            $new_payment_status = ($current_payment_status == 'paid') ? 'refunded' : 'cancelled';
+            
+            // Update the status to cancelled and payment_status accordingly
+            $update_stmt = $mysqli->prepare('UPDATE collection_requests SET status="cancelled", payment_status=?, updated_at=NOW() WHERE id=?');
+            $update_stmt->bind_param('si', $new_payment_status, $request_id);
+            $update_stmt->execute();
+            
+            // Update user dues to 0 in users table
+            $update_user_stmt = $mysqli->prepare('UPDATE users SET dues=0 WHERE id=?');
+            $update_user_stmt->bind_param('i', $uid);
+            $update_user_stmt->execute();
+            
+            // Commit transaction
+            $mysqli->commit();
+            
+            if($new_payment_status == 'refunded') {
+                $_SESSION['success_msg'] = "Request #{$request_id} has been cancelled successfully. Payment will be refunded and dues cleared.";
+            } else {
+                $_SESSION['success_msg'] = "Request #{$request_id} has been cancelled successfully and dues cleared.";
+            }
+        } catch (Exception $e) {
+            // Rollback transaction on error
+            $mysqli->rollback();
             $_SESSION['error_msg'] = "Failed to cancel the request. Please try again.";
         }
         
         $update_stmt->close();
+        $update_user_stmt->close();
         
         // Redirect to avoid form resubmission
         header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     } else {
-        $_SESSION['error_msg'] = "Request not found or cannot be cancelled.";
+        $_SESSION['error_msg'] = "Request not found, cannot be cancelled, or is no longer pending.";
         header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     }
@@ -164,15 +189,29 @@ require 'header.php';
               </td>
               <td class="px-6 py-4">
                 <?php
-                $payment_config = [
-                    'pending' => ['color' => 'red', 'bg' => 'bg-red-100', 'text' => 'text-red-800'],
-                    'paid' => ['color' => 'green', 'bg' => 'bg-green-100', 'text' => 'text-green-800']
-                ];
                 $payment_status = $r['payment_status'];
-                $payment_cfg = $payment_config[$payment_status] ?? $payment_config['pending'];
+                
+                // Define payment status styles
+                if($payment_status == 'paid') {
+                    $payment_bg = 'bg-green-100';
+                    $payment_text = 'text-green-800';
+                    $payment_icon = 'fa-check-circle';
+                } elseif($payment_status == 'refunded') {
+                    $payment_bg = 'bg-purple-100';
+                    $payment_text = 'text-purple-800';
+                    $payment_icon = 'fa-undo';
+                } elseif($payment_status == 'cancelled') {
+                    $payment_bg = 'bg-gray-100';
+                    $payment_text = 'text-gray-800';
+                    $payment_icon = 'fa-ban';
+                } else {
+                    $payment_bg = 'bg-red-100';
+                    $payment_text = 'text-red-800';
+                    $payment_icon = 'fa-clock';
+                }
                 ?>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <?php echo $payment_cfg['bg'] . ' ' . $payment_cfg['text']; ?>">
-                  <i class="fas <?php echo $payment_status == 'paid' ? 'fa-check-circle' : 'fa-clock'; ?> mr-1 text-xs"></i>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold <?php echo $payment_bg . ' ' . $payment_text; ?>">
+                  <i class="fas <?php echo $payment_icon; ?> mr-1 text-xs"></i>
                   <?php echo ucfirst($payment_status); ?>
                 </span>
                 <?php if($r['payment_status'] == 'pending' && $r['status'] != 'cancelled'): ?>
@@ -197,7 +236,7 @@ require 'header.php';
                   
                   <!-- Cancel Request (only if pending) -->
                   <?php if($r['status'] == 'pending'): ?>
-                    <form method="POST" class="inline" onsubmit="return confirmCancel()">
+                    <form method="POST" class="inline" onsubmit="return confirmCancel(<?php echo $r['payment_status'] == 'paid' ? 'true' : 'false'; ?>)">
                       <input type="hidden" name="request_id" value="<?php echo $r['id']; ?>">
                       <button type="submit" name="cancel_request" 
                               class="text-red-600 hover:text-red-800 text-sm transition-colors"
@@ -294,8 +333,12 @@ function showRequestDetails(requestId) {
   document.getElementById('requestModal').classList.remove('hidden');
 }
 
-function confirmCancel() {
-  return confirm('Are you sure you want to cancel this collection request? This action cannot be undone.');
+function confirmCancel(isPaid) {
+  if (isPaid) {
+    return confirm('Are you sure you want to cancel this collection request? Your payment will be refunded and this action cannot be undone.');
+  } else {
+    return confirm('Are you sure you want to cancel this collection request? This action cannot be undone.');
+  }
 }
 
 function repeatRequest(requestId) {
